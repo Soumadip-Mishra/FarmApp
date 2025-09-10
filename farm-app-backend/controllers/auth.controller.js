@@ -2,20 +2,21 @@ import bcrypt from "bcryptjs";
 import fs from "fs";
 import User from "../models/user.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import { generateToken, getPublicID } from "../lib/util.js";
 
 export const signUp = async (req, res) => {
 	try {
-        if (!req.body){
-            res.status(400).json({ message: "All fields should be filled" });
+		if (!req.body) {
+			res.status(400).json({ message: "All fields should be filled" });
 			return;
-        }
+		}
 		const name = req.body.name.trim();
 		const email = req.body.email.trim();
 		const password = req.body.password.trim();
 		const phoneNo = req.body.phoneNo.trim();
 		const aadharNo = req.body.aadharNo.trim();
 
-		if (!name || !email || !password ||!phoneNo || !aadharNo) {
+		if (!name || !email || !password || !phoneNo || !aadharNo) {
 			res.status(400).json({ message: "All fields should be filled" });
 			return;
 		}
@@ -64,9 +65,13 @@ export const signUp = async (req, res) => {
 			aadharNo,
 			password: hashedPassword,
 		});
-		
+
 		await newUser.save();
-		return res.status(201).json(newUser);
+		const token = generateToken(newUser._id);
+		const userObj = newUser.toObject();
+		userObj.token = token;
+
+		res.status(201).json(userObj);
 	} catch (error) {
 		console.log("Error in sign-up ", error);
 		res.status(500).json({ message: "Internal Server Error" });
@@ -95,7 +100,8 @@ export const logIn = async (req, res) => {
 			res.status(400).json({ message: "Invalid credinials" });
 			return;
 		}
-		
+		const token = generateToken(newUser._id);
+		newUser.token = token;
 		return res.status(201).json(user);
 	} catch (error) {
 		console.log("Error in login ", error);
@@ -105,18 +111,7 @@ export const logIn = async (req, res) => {
 
 export const changePic = async (req, res) => {
 	try {
-        let input = req.body.input;
-		const userEmailPresent = await User.findOne({ email: input });
-		const userPhonePresent = await User.findOne({ phoneNo: input });
-		const userAadharPresent = await User.findOne({ aadharNo: input });
-		if (!userEmailPresent && !userPhonePresent && !userAadharPresent) {
-			res.status(400).json({ message: "Invalid credinials" });
-			return;
-		}
-		let user;
-		if (userAadharPresent) user = userAadharPresent;
-		else if (userEmailPresent) user = userEmailPresent;
-		else if (userAadharPresent) user = userAadharPresent;
+        const user = req.user;
 		const filePath = req.file.path;
 
 		if (user.profilePic) {
@@ -134,6 +129,6 @@ export const changePic = async (req, res) => {
 		res.status(200).json(user);
 	} catch (error) {
 		console.log("Error in changing profile pic", error);
-		res.status(400).json({ message: "Internal server error" });
+		res.status(500).json({ message: "Internal server error" });
 	}
 };

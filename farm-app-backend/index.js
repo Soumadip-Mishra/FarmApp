@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from "./routes/auth.route.js";
+import chatBotRoutes from "./routes/chatbot.route.js";
 import { connectDB } from "./lib/db.js";
 
 dotenv.config();
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/chatbot", chatBotRoutes);
 app.get("/", (req, res) => {
 	res.status(200).json({ message: "Hello World!" });
 });

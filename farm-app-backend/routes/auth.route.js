@@ -5,6 +5,7 @@ import {
     changePic
 } from "../controllers/auth.controller.js";
 import multer from "multer";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
 const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
@@ -24,7 +25,7 @@ const router = express.Router();
 router.post("/signup", signUp);
 router.post("/login", logIn);
 router.post(
-	"/change/profile-pic",
+	"/change/profile-pic",protectRoute,
 	upload.single("profilePic"),
 	changePic
 );

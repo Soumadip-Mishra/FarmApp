@@ -1,8 +1,7 @@
 import express from "express";
-import {
-     
-} from "../controllers/auth.controller.js";
+import { getChatbotMessages, prompt, uploadInput } from "../controllers/chatbot.controller.js";
 import multer from "multer";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -19,12 +18,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 const router = express.Router();
 
-router.post("/signup", signUp);
-router.post("/login", logIn);
-router.post(
-    "/change/profile-pic",
-    upload.single("profilePic"),
-    changePic
-);
-
+router.get("/get-chatbot-messages", protectRoute, getChatbotMessages);
+router.post("/upload-input", protectRoute, upload.single("image"), uploadInput);
+router.post("/send-prompt", protectRoute, upload.single("image"), prompt);
 export default router
